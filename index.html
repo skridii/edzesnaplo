@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b100d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Edzésnapló">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Edzésnapló</title>
+<style>
+:root{--bg:#070a08;--card:#121813;--card2:#192119;--line:#28342a;--text:#f4f7f4;--muted:#aeb8ae;--green:#7fa86d;--green2:#4f7047;--danger:#9b5b5b}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+body{min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+button,input{font:inherit}button{border:0;color:inherit}
+.app{max-width:720px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px 32px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.logo{font-size:28px;font-weight:850;letter-spacing:-1px}.sub{color:var(--muted);font-size:13px;margin-top:3px}
+.iconbtn{width:44px;height:44px;border-radius:14px;background:#111611;display:grid;place-items:center;font-size:20px}
+h1{font-size:30px;line-height:1.05;margin:8px 0 6px;letter-spacing:-1px}h2{font-size:21px;margin:0 0 5px}
+.section{margin-top:24px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.card{background:linear-gradient(145deg,#151c16,#0f1511);border:1px solid var(--line);border-radius:20px;padding:18px;margin:10px 0;box-shadow:0 10px 30px #0005}
+.workout-card{cursor:pointer;transition:.15s transform}.workout-card:active{transform:scale(.985)}
+.badge{display:inline-flex;background:#263525;color:#c4d7bd;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
+.muted{color:var(--muted)}.small{font-size:13px}.arrow{font-size:24px;color:#91aa89}
+.exercise{padding:18px 0;border-bottom:1px solid #202920}.exercise:last-child{border-bottom:0}
+.exercise-head{display:flex;gap:12px;align-items:flex-start}.num{width:34px;height:34px;border-radius:11px;background:#273526;color:#c7dbbf;display:grid;place-items:center;font-weight:800;flex:none}
+.exercise-title{font-size:19px;font-weight:800;line-height:1.15}.recommend{color:#aebaa9;font-size:13px;margin-top:4px}
+.prev{margin:12px 0 10px;padding:10px 12px;border-radius:12px;background:#0d120e;border:1px solid #202a21;color:#b8c2b7;font-size:13px}
+.set-head,.set-row{display:grid;grid-template-columns:40px 1fr 1fr 46px;gap:8px;align-items:center}
+.set-head{color:#849184;font-size:11px;text-transform:uppercase;letter-spacing:.7px;margin:8px 0}
+.set-row{margin:8px 0}.set-no{text-align:center;color:#8e998e;font-weight:800}
+.field{background:#151d16;border:1px solid #2a362c;border-radius:11px;color:#fff;min-width:0;height:48px;text-align:center;font-size:18px;font-weight:750;outline:none}
+.field:focus{border-color:#6e8f65;box-shadow:0 0 0 2px #6e8f6525}
+.done{width:46px;height:48px;border-radius:11px;background:#365031;color:#e6f0e2;font-size:22px}
+.done.off{background:#202820;color:#778276}
+.delete{width:34px;height:34px;border-radius:50%;background:#714747;color:#fff;font-size:18px}
+.addset{margin-top:10px;width:100%;padding:12px;border:1px dashed #58704f;background:transparent;border-radius:12px;color:#83a479;font-weight:750}
+.primary{width:100%;padding:15px;border-radius:14px;background:#536f4b;color:#fff;font-weight:800;font-size:16px;margin-top:12px}
+.secondary{width:100%;padding:13px;border-radius:13px;background:#1a211b;color:#c4ccc2;font-weight:700;margin-top:10px}
+.bottom{position:sticky;bottom:0;background:linear-gradient(transparent,#070a08 22%);padding-top:20px}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 4px}
+.nav button{padding:13px;border-radius:12px;background:#111711;color:#9da79c}.nav button.active{background:#263525;color:#dbe8d7}
+.hidden{display:none!important}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.history-item{padding:13px 0;border-bottom:1px solid #202820}
+.empty{text-align:center;padding:35px 15px;color:#899389}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#dce9d9;color:#142012;padding:11px 16px;border-radius:999px;font-weight:750;box-shadow:0 8px 30px #0008;z-index:20;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1}
+@media(max-width:430px){.app{padding-left:13px;padding-right:13px}.exercise-title{font-size:18px}.set-row{grid-template-columns:32px 1fr 1fr 43px}.field{height:46px;font-size:17px}.done{width:43px;height:46px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="home"></div>
+  <div id="workout" class="hidden"></div>
+  <div id="history" class="hidden"></div>
+  <div class="nav">
+    <button id="navHome" class="active" onclick="showHome()">Edzések</button>
+    <button id="navHistory" onclick="showHistory()">Előzmények</button>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const workouts = [
+ {id:"A", title:"Edzés A", date:"2026. július 1.", subtitle:"1. nap • 6 gyakorlat", exercises:[
+  "Scott Pados Karhajlítás Gépen","Csípőtolás Gépen","Tricepsz Letolás Rúddal (Paddal)","Láb Extenzió","Csípő Abdukció","Csigán Mell Tárogatás"
+ ]},
+ {id:"B", title:"Edzés B", date:"2026. július 2.", subtitle:"2. nap • 6 gyakorlat", exercises:[
+  "Könyöktámaszos KS Karhajlítás","Vádli Nyomás","Széles Evezés Gépen","Lábtoló","Smith Fordított Nyomás","SLDL"
+ ]},
+ {id:"C", title:"Edzés C", date:"2026. július 3.", subtitle:"3. nap • 6 gyakorlat", exercises:[
+  "Csípő Addukció Gépen","Oldalsó Hanging Leg Raise","Pendulum Squat","Csigán T-Emelés","Hátsócomb Hajlítás Ülve","Csigán Kötéllel Tricepsz Letolás"
+ ]}
+];
+const REC="2–3 × 5–9";
+const KEY="edzesnaplo_v1";
+let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":{},"current":{}}');
+let active=null;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1500)}
+function prevFor(wid,eidx){
+  const s=db.sessions[wid];
+  if(!s||!s[eidx]) return null;
+  const rows=s[eidx].sets||[];
+  const done=rows.filter(x=>x.weight!==""||x.reps!=="");
+  return done.length?done.map(x=>`${x.weight||0} kg × ${x.reps||0}`).join("  •  "):null;
+}
+function showHome(){
+ document.getElementById("home").classList.remove("hidden");document.getElementById("workout").classList.add("hidden");document.getElementById("history").classList.add("hidden");
+ document.getElementById("navHome").classList.add("active");document.getElementById("navHistory").classList.remove("active");
+ document.getElementById("home").innerHTML=`
+ <div class="header"><div><div class="logo">EDZÉSNAPLÓ</div><div class="sub">Súly • ismétlés • fejlődés</div></div><button class="iconbtn" onclick="resetAll()" title="Adatok törlése">⚙️</button></div>
+ <h1>Válaszd ki az edzést</h1><div class="muted">A következő alkalommal automatikusan látni fogod az előző eredményeidet.</div>
+ <div class="section">${workouts.map(w=>`<div class="card workout-card" onclick="openWorkout('${w.id}')"><div class="row"><div><span class="badge">${w.date}</span><h2 style="margin-top:12px">${w.title}</h2><div class="muted small">${w.subtitle}</div></div><div class="arrow">›</div></div><div class="small muted" style="margin-top:12px">${w.exercises.join(" • ")}</div></div>`).join("")}</div>
+ <div class="card"><b>Hogyan működik?</b><div class="small muted" style="margin-top:8px;line-height:1.55">Írd be a súlyt és az ismétlést, majd pipáld ki a sorozatot. Mentés után a következő edzésnél minden gyakorlatnál megjelenik a legutóbbi teljesítményed.</div></div>`;
+}
+function openWorkout(id){
+ active=workouts.find(w=>w.id===id);
+ document.getElementById("home").classList.add("hidden");document.getElementById("history").classList.add("hidden");document.getElementById("workout").classList.remove("hidden");
+ document.getElementById("navHome").classList.add("active");document.getElementById("navHistory").classList.remove("active");
+ renderWorkout();
+ window.scrollTo(0,0);
+}
+function getCurrent(eidx){
+ const c=db.current[active.id]?.[eidx];
+ if(c) return c;
+ return {sets:[{weight:"",reps:"",done:false},{weight:"",reps:"",done:false}]};
+}
+function renderWorkout(){
+ const w=active;
+ document.getElementById("workout").innerHTML=`
+ <div class="header"><button class="iconbtn" onclick="showHome()">‹</button><div style="text-align:right"><div class="logo" style="font-size:22px">${w.title}</div><div class="sub">${w.date}</div></div></div>
+ <div class="card"><div class="row"><div><b>${w.exercises.length} gyakorlat</b><div class="small muted" style="margin-top:4px">Ajánlott: ${REC}</div></div><span class="badge">MENTÉS A TELEFONON</span></div></div>
+ <div>${w.exercises.map((e,i)=>exerciseHTML(e,i)).join("")}</div>
+ <div class="bottom"><button class="primary" onclick="finishWorkout()">✓ Edzés mentése</button><button class="secondary" onclick="showHome()">Vissza az edzésekhez</button></div>`;
+}
+function exerciseHTML(e,i){
+ const c=getCurrent(i), p=prevFor(active.id,i);
+ return `<div class="exercise">
+   <div class="exercise-head"><div class="num">${i+1}</div><div><div class="exercise-title">${esc(e)}</div><div class="recommend">Ajánlott: ${REC}</div></div></div>
+   ${p?`<div class="prev">↗ <b>Legutóbb:</b> ${esc(p)}</div>`:`<div class="prev">ℹ Még nincs mentett eredmény ehhez a gyakorlathoz.</div>`}
+   <div class="set-head"><span></span><span>Súly (kg)</span><span>Ism.</span><span></span></div>
+   <div id="sets-${i}">${c.sets.map((s,j)=>setHTML(i,j,s)).join("")}</div>
+   <button class="addset" onclick="addSet(${i})">＋ Új sorozat hozzáadása</button>
+ </div>`;
+}
+function setHTML(i,j,s){
+ return `<div class="set-row" id="set-${i}-${j}">
+   <div class="set-no">${j+1}</div>
+   <input class="field" inputmode="decimal" placeholder="0" value="${esc(s.weight??"")}" onchange="updateSet(${i},${j},'weight',this.value)">
+   <input class="field" inputmode="numeric" placeholder="0" value="${esc(s.reps??"")}" onchange="updateSet(${i},${j},'reps',this.value)">
+   <button class="done ${s.done?'':'off'}" onclick="toggleDone(${i},${j})">${s.done?'✓':'○'}</button>
+ </div>`;
+}
+function ensure(i){if(!db.current[active.id])db.current[active.id]={};if(!db.current[active.id][i])db.current[active.id][i]={sets:[{weight:"",reps:"",done:false},{weight:"",reps:"",done:false}]};return db.current[active.id][i]}
+function updateSet(i,j,k,v){const c=ensure(i);c.sets[j][k]=v;save()}
+function toggleDone(i,j){const c=ensure(i);c.sets[j].done=!c.sets[j].done;save();renderWorkout()}
+function addSet(i){const c=ensure(i);c.sets.push({weight:"",reps:"",done:false});save();renderWorkout()}
+function finishWorkout(){
+ const today=new Date().toLocaleDateString("hu-HU",{year:"numeric",month:"2-digit",day:"2-digit"});
+ db.sessions[active.id]=structuredClone(db.current[active.id]||{});
+ db.sessions[active.id]._date=today;
+ save(); db.current[active.id]=null; save(); toast("Edzés elmentve ✓"); renderWorkout();
+}
+function showHistory(){
+ document.getElementById("home").classList.add("hidden");document.getElementById("workout").classList.add("hidden");document.getElementById("history").classList.remove("hidden");
+ document.getElementById("navHome").classList.remove("active");document.getElementById("navHistory").classList.add("active");
+ const items=workouts.map(w=>{const s=db.sessions[w.id];if(!s)return "";const vals=[];w.exercises.forEach((e,i)=>{(s[i]?.sets||[]).forEach(x=>{if(x.weight!==""||x.reps!=="")vals.push(`${e}: ${x.weight||0} kg × ${x.reps||0}`)})});return `<div class="history-item"><b>${w.title}</b><div class="small muted">${s._date||"Mentve"} • ${vals.length} rögzített sorozat</div></div>`}).filter(Boolean).join("");
+ document.getElementById("history").innerHTML=`<div class="header"><div><div class="logo">ELŐZMÉNYEK</div><div class="sub">Mentett teljesítmények</div></div></div>${items?`<div class="card">${items}</div>`:`<div class="empty">Még nincs mentett edzés.<br>Válassz egy edzést és rögzítsd a sorozataidat.</div>`}<button class="secondary" onclick="exportData()">Adatok exportálása</button><button class="secondary" onclick="importData()">Adatok importálása</button>`;
+}
+function exportData(){
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="edzesnaplo-mentes.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+function importData(){
+ const input=document.createElement("input");input.type="file";input.accept=".json,application/json";input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Importálva ✓");showHistory()}catch{toast("Hibás mentés")}};r.readAsText(f)};input.click();
+}
+function resetAll(){
+ if(confirm("Biztosan törlöd az összes mentett edzést?")){db={sessions:{},current:{}};save();toast("Adatok törölve");showHome()}
+}
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+showHome();
+</script>
+</body>
+</html>

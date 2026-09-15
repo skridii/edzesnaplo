@@ -1,0 +1,10 @@
+{
+  "name":"Edzésnapló",
+  "short_name":"Edzésnapló",
+  "start_url":"./index.html",
+  "display":"standalone",
+  "background_color":"#070a08",
+  "theme_color":"#0b100d",
+  "lang":"hu",
+  "icons":[]
+}
